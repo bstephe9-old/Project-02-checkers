@@ -3,7 +3,7 @@ Game.py
 The game file holds the game logic and game class.
 """
 import pygame
-from constants import RED, WHITE, YELLOW, SQUARE_SIZE
+from constants import RED, WHITE, YELLOW, SQUARE_SIZE, BLUE
 from Main_Board import Main_Board
 
 class Game: 
@@ -22,7 +22,7 @@ class Game:
         self.win = win
         self.color = color
         self.selected = None
-        self.board = Main_Board(self.color)
+        self.board = Main_Board(self.color, self)
         self.turn = RED
         self.valid_moves = {}
         self.font = pygame.font.Font(None, 36)  # Font for rendering text
@@ -31,6 +31,9 @@ class Game:
         self.screen = pygame.display.set_mode((1000, 700))
         self.player1 = player1
         self.player2 = player2
+        self.row = 0
+        self.col = 0
+        self.turns = 0
         
     def check_turn_timeout(self):
         """
@@ -38,7 +41,7 @@ class Game:
         """
         elapsed_time = pygame.time.get_ticks() - self.turn_start_time
         elapsed_seconds = elapsed_time // 1000 
-        text = f"Move Timer: {elapsed_seconds} s"
+        text = f"Move Timer: {5-elapsed_seconds} s" #changing this to show time counting down
         text_surface = self.font.render(text, True, self.text_color)
         if elapsed_time > 3000:
             text_surface = self.font.render(text, True, self.text_urgent_color)
@@ -82,6 +85,12 @@ class Game:
         self.screen.blit(text_surface, (715, 350))
         self.screen.blit(text_surface2, (715, 400))
 
+    def display_prev_move(self):
+        pygame.draw.circle(self.win, BLUE, (self.col * SQUARE_SIZE + SQUARE_SIZE//2, self.row * SQUARE_SIZE + SQUARE_SIZE//2), 20, 3)
+        pygame.display.update() 
+
+        
+
     def update(self): 
         """
         The update function updates the board to show the current board and features.
@@ -90,6 +99,8 @@ class Game:
         self.show_available_moves(self.valid_moves)
         self.check_turn_timeout()
         self.display_turn()
+        if(self.turns!=0):
+            self.display_prev_move()
         self.display_piece_count()
         self.display_player_names(self.player1, self.player2)
         pygame.display.update()
@@ -125,8 +136,12 @@ class Game:
         """
         The move function moves a piece to a given row and column and changes the turn.
         """
+        self.turns = self.turns + 1
         piece = self.board.get_piece(row, col)
         if self.selected and piece == 0 and (row, col) in self.valid_moves:
+            self.row = row
+            self.col = col
+            self.display_prev_move()
             self.board.move(self.selected, row, col)
             skipped = self.valid_moves.get((row, col))
             if skipped:
@@ -167,4 +182,6 @@ class Game:
         The ai move function moves the AI piece in a player vs computer game.
         """
         self.board = board
+        self.row = self.board.getCompRow()
+        self.col = self.board.getCompCol()
         self.change_turn()
