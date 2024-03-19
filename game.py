@@ -84,6 +84,27 @@ class Game:
         self.screen.blit(text_surface, (715, 350))
         self.screen.blit(text_surface2, (715, 400))
         
+    def draw_text(self, text, color, rect):
+        words = text.split(' ')
+        lines = []
+        line = ''
+        for word in words:
+            test_line = line + word + ' '
+            if self.reddit_font.size(test_line)[0] > rect.width:
+                lines.append(line)
+                line = word + ' '
+            else:
+                line = test_line
+        lines.append(line)
+
+        y = rect.top
+        for line in lines:
+            text_surface = self.reddit_font.render(line, True, color)
+            self.screen.blit(text_surface, (rect.left, y))
+            y += self.reddit_font.get_linesize()
+            
+        return len(lines)
+        
     def display_reddit_post(self):
         """
         Displays the newest post from r/Temple onto the screen.
