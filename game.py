@@ -3,6 +3,7 @@ Game.py
 The game file holds the game logic and game class.
 """
 import pygame
+import reddit
 from constants import RED, WHITE, YELLOW, SQUARE_SIZE
 from Main_Board import Main_Board
 
@@ -26,6 +27,7 @@ class Game:
         self.turn = RED
         self.valid_moves = {}
         self.font = pygame.font.Font(None, 36)  # Font for rendering text
+        self.reddit_font = pygame.font.Font(None, 14)
         self.text_color = WHITE  # Text color
         self.text_urgent_color = RED  # Text color when time is running out
         self.screen = pygame.display.set_mode((1000, 700))
@@ -81,6 +83,17 @@ class Game:
         text_surface2 = self.font.render(text2, True, self.text_color)
         self.screen.blit(text_surface, (715, 350))
         self.screen.blit(text_surface2, (715, 400))
+        
+    def display_reddit_post(self):
+        """
+        Displays the newest post from r/Temple onto the screen.
+        """
+        post = reddit.getNewPost(1)[0]
+        text = post[0]
+        redditor = post[1]
+        upvotes = post[2]
+        text_surface = self.reddit_font.render(text, True, "red")
+        self.screen.blit(text_surface, (715, 500))
 
     def update(self): 
         """
@@ -92,6 +105,7 @@ class Game:
         self.display_turn()
         self.display_piece_count()
         self.display_player_names(self.player1, self.player2)
+        self.display_reddit_post()
         pygame.display.update()
         
     def winner(self): 
