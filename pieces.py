@@ -26,6 +26,12 @@ class Piece:
         self.y = 0
         self.calc_pos()
 
+    def get_row(self):
+        return self.row
+    
+    def get_col(self):
+        return self.col
+
     def calc_pos(self):
         """
         The calc_pos function calculates the position of the piece.
