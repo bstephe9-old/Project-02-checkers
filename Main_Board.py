@@ -4,6 +4,7 @@ The Main_Board File holds the Main_Board class which is responsible for managing
 """
 
 import pygame
+import copy
 from constants import BLACK, ROWS, RED, SQUARE_SIZE, COLS, WHITE
 from pieces import Piece
 
@@ -13,7 +14,7 @@ class Main_Board:
     evaluate the board, get all pieces, get a single piece, move a piece (left or right), create the board, draw the board, 
     remove a piece, and check for a winner.
     """
-    def __init__(self, color):
+    def __init__(self, color, game):
         """
         The init function initializes the Main_Board class with a color and creates the board.
         """
@@ -21,7 +22,11 @@ class Main_Board:
         self.color = color
         self.red_left = self.white_left = 12
         self.red_kings = self.white_kings = 0
+        self.game = game
+        self.compRow = 0
+        self.compCol = 0
         self.create_board()
+        
     
     def draw_squares(self, win):
         """
@@ -53,7 +58,13 @@ class Main_Board:
         """
         The move function moves a piece to a given row and column. If the selected row is at the end of the board, the piece becomes a king piece.
         """
+
         self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
+        #self.game.row = row
+        #self.game.col = col
+        self.compRow = row
+        self.compCol = col
+        #self.game.display_prev_move()
         piece.move(row, col)
         if row == ROWS - 1 or row == 0:
             piece.make_king()
@@ -221,3 +232,18 @@ class Main_Board:
                     if valid_moves:
                         return False
         return True
+    
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, memo) if k != 'game' else v)
+        return result
+    
+    def getCompRow(self):
+        return self.compRow
+    
+    def getCompCol(self):
+        return self.compCol
+        
