@@ -27,7 +27,8 @@ class Game:
         self.turn = RED
         self.valid_moves = {}
         self.font = pygame.font.Font(None, 36)  # Font for rendering text
-        self.reddit_font = pygame.font.Font(None, 14)
+        self.reddit_font = pygame.font.Font(None, 24)
+        self.reddit_post = reddit.getNewPost(1)[0]
         self.text_color = WHITE  # Text color
         self.text_urgent_color = RED  # Text color when time is running out
         self.screen = pygame.display.set_mode((1000, 700))
@@ -85,6 +86,11 @@ class Game:
         self.screen.blit(text_surface2, (715, 400))
         
     def draw_text(self, text, color, rect):
+        """
+        Draws text onto the screen and wraps the text up to the width of rect.
+        
+        Returns the total number of lines drawn.
+        """
         words = text.split(' ')
         lines = []
         line = ''
@@ -109,13 +115,34 @@ class Game:
         """
         Displays the newest post from r/Temple onto the screen.
         """
-        post = reddit.getNewPost(1)[0]
-        text = post[0]
-        redditor = post[1]
-        upvotes = post[2]
-        text_surface = self.reddit_font.render(text, True, "red")
-        self.screen.blit(text_surface, (715, 500))
-
+        
+        # Extract reddit post info
+        title = self.reddit_post[0]
+        redditor = self.reddit_post[1]
+        upvotes = self.reddit_post[2]
+        
+        # Create surfaces to display text
+        heading_surface = self.font.render("r/Temple Latest Post", True, "red")
+        redditor_surface = self.reddit_font.render(f"By: {redditor.name}", True, "red")
+        upvotes_surface = self.reddit_font.render(f"Upvotes: {upvotes}", True, "red")
+        
+        heading_y = 450
+        title_y = heading_y + 50
+        y_offset = 20 # Distance between each surface
+        
+        # Heading
+        self.screen.blit(heading_surface, (715, heading_y))
+        
+        # Draw title using separate method to wrap text
+        title_rect = pygame.Rect(715, title_y, 250, 200)
+        lines = self.draw_text(title, pygame.Color("red"), title_rect)
+        
+        # Draw all other surfaces (accounting for line wrap from post title)
+        surfaces = [redditor_surface, upvotes_surface]
+        for index, surface in enumerate(surfaces):
+            surface_y = title_y + (y_offset * (lines + index + 1))
+            self.screen.blit(surface, (715, surface_y))
+        
     def update(self): 
         """
         The update function updates the board to show the current board and features.
