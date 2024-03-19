@@ -3,6 +3,7 @@ Game.py
 The game file holds the game logic and game class.
 """
 import pygame
+import reddit
 from constants import RED, WHITE, YELLOW, SQUARE_SIZE, BLUE
 from Main_Board import Main_Board
 
@@ -26,6 +27,8 @@ class Game:
         self.turn = RED
         self.valid_moves = {}
         self.font = pygame.font.Font(None, 36)  # Font for rendering text
+        self.reddit_font = pygame.font.Font(None, 24)
+        self.reddit_post = reddit.getNewPost(1)[0]
         self.text_color = WHITE  # Text color
         self.text_urgent_color = RED  # Text color when time is running out
         self.screen = pygame.display.set_mode((1000, 700))
@@ -89,8 +92,64 @@ class Game:
         pygame.draw.circle(self.win, BLUE, (self.col * SQUARE_SIZE + SQUARE_SIZE//2, self.row * SQUARE_SIZE + SQUARE_SIZE//2), 20, 3)
         pygame.display.update() 
 
+    def draw_text(self, text, color, rect):
+        """
+        Draws text onto the screen and wraps the text up to the width of rect.
         
+        Returns the total number of lines drawn.
+        """
+        words = text.split(' ')
+        lines = []
+        line = ''
+        for word in words:
+            test_line = line + word + ' '
+            if self.reddit_font.size(test_line)[0] > rect.width:
+                lines.append(line)
+                line = word + ' '
+            else:
+                line = test_line
+        lines.append(line)
 
+        y = rect.top
+        for line in lines:
+            text_surface = self.reddit_font.render(line, True, color)
+            self.screen.blit(text_surface, (rect.left, y))
+            y += self.reddit_font.get_linesize()
+            
+        return len(lines)
+        
+    def display_reddit_post(self):
+        """
+        Displays the newest post from r/Temple onto the screen.
+        """
+        
+        # Extract reddit post info
+        title = self.reddit_post[0]
+        redditor = self.reddit_post[1]
+        upvotes = self.reddit_post[2]
+        
+        # Create surfaces to display text
+        heading_surface = self.font.render("r/Temple Latest Post", True, "red")
+        redditor_surface = self.reddit_font.render(f"By: {redditor.name}", True, "red")
+        upvotes_surface = self.reddit_font.render(f"Upvotes: {upvotes}", True, "red")
+        
+        heading_y = 450
+        title_y = heading_y + 50
+        y_offset = 20 # Distance between each surface
+        
+        # Heading
+        self.screen.blit(heading_surface, (715, heading_y))
+        
+        # Draw title using separate method to wrap text
+        title_rect = pygame.Rect(715, title_y, 250, 200)
+        lines = self.draw_text(title, pygame.Color("red"), title_rect)
+        
+        # Draw all other surfaces (accounting for line wrap from post title)
+        surfaces = [redditor_surface, upvotes_surface]
+        for index, surface in enumerate(surfaces):
+            surface_y = title_y + (y_offset * (lines + index + 1))
+            self.screen.blit(surface, (715, surface_y))
+        
     def update(self): 
         """
         The update function updates the board to show the current board and features.
@@ -103,6 +162,7 @@ class Game:
             self.display_prev_move()
         self.display_piece_count()
         self.display_player_names(self.player1, self.player2)
+        self.display_reddit_post()
         pygame.display.update()
         
     def winner(self): 
